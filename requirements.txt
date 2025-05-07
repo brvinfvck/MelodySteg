@@ -1,4 +1,4 @@
-numpy 
+numpy as np
 pandas 
 librosa
 pydub
@@ -10,4 +10,4 @@ librosa
 pydub
 midi2audio
 mido
-fluidsynth 
+fluidsynth

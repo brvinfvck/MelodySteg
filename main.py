@@ -1,5 +1,5 @@
 import os
-os.system("cls")
+os.system("clear")
 
 import IPython.display as ipd
 from utils_midi import exportar_melodia_a_midi

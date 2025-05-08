@@ -21,8 +21,8 @@ def generar_clave_y_compases(texto: str) -> Tuple[Tuple[int, int], int]:
     b = ord(texto[0])  #valor ASCII del primer char del txto
     clave = (a, b)
 
-    print(f"\nClave generada: a = {a}, b = {b}")
-    print(f" Número de compases: {compases} (3 por cada carácter del mensaje)\n")
+    # print(f"\nClave generada: a = {a}, b = {b}")
+    # print(f" Número de compases: {compases} (3 por char)")
 
     return clave, compases
 
@@ -32,25 +32,25 @@ def generar_clave_y_compases(texto: str) -> Tuple[Tuple[int, int], int]:
 def char_a_indices(c):
     byte = ord(c)
     indices = [(byte >> 6) & 0b111, (byte >> 3) & 0b111, byte & 0b111]
-    print(f"[char_a_indices] '{c}' -> byte: {byte:08b} -> indices: {indices}")
+    #print(f"[char_a_indices] '{c}' -> byte: {byte:08b} -> indices: {indices}")
     return indices
 
 def codificar_texto_a_indices(texto):
-    print(f"[codificar_texto_a_indices] Codificando texto: '{texto}'")
+    #print(f"[codificar_texto_a_indices] Codificando texto: '{texto}'")
     indices = []
     for c in texto:
         indices.extend(char_a_indices(c))
-    print(f"[codificar_texto_a_indices] Índices finales: {indices}")
+    #print(f"[codificar_texto_a_indices] Índices finales: {indices}")
     return indices
 
 def nota_en_compas(idx, clave, compases):
     a, b = clave
     compas = (idx * a + b) % compases
-    print(f"[nota_en_compas] Nota idx {idx} -> Compás: {compas}")
+    #print(f"[nota_en_compas] Nota idx {idx} -> Compás: {compas}")
     return compas
 
 def generar_melodia_con_mensaje(texto, clave, compases):
-    print(f"[generar_melodia_con_mensaje] Generando melodía para: '{texto}' con clave {clave}")
+    #print(f"[generar_melodia_con_mensaje] Generando melodía para: '{texto}' con clave {clave}")
     indices = codificar_texto_a_indices(texto)
     melodia = []
 
@@ -58,9 +58,9 @@ def generar_melodia_con_mensaje(texto, clave, compases):
         freq = FREQS[idx]
         compas = nota_en_compas(i, clave, compases)
         melodia.append((i, freq, compas))
-        print(f"[generar_melodia_con_mensaje] i={i}, index={idx} -> freq={freq} Hz, compás={compas}")
+        #print(f"[generar_melodia_con_mensaje] i={i}, index={idx} -> freq={freq} Hz, compás={compas}")
 
-    print(f"[generar_melodia_con_mensaje] Melodía generada con {len(melodia)} notas.")
+    #print(f"[generar_melodia_con_mensaje] Melodía generada con {len(melodia)} notas.")
     return melodia
 
 def mostrar_melodia_en_texto(melodia):

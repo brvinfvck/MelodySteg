@@ -20,8 +20,8 @@ def exportar_melodia_a_midi(melodia, nombre_archivo="mensaje.mid", bpm=60, instr
         nota_midi = frecuencia_a_nota_midi(freq)
         track.append(Message('note_on', note=nota_midi, velocity=64, time=0))
         track.append(Message('note_off', note=nota_midi, velocity=64, time=duracion_ticks))
-        print(f"[MIDI] nota {nota_midi} ({freq:.2f} Hz) añadida con duración {duracion_ticks} ticks")
+        #print(f"[MIDI] nota {nota_midi} ({freq:.2f} Hz) añadida con duración {duracion_ticks} ticks")
 
     mid.save(nombre_archivo)
-    print(f"Archivo MIDI guardado como: {nombre_archivo}")
+    #print(f"Archivo MIDI guardado como: {nombre_archivo}")
 

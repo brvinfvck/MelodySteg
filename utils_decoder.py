@@ -55,7 +55,7 @@ def reconstruir_mensaje_desde_indices(indices_ordenados):
         return chr(byte)
 
     chars = []
-    print(f"\nidx recibidos: {indices_ordenados}")
+    #print(f"\nidx recibidos: {indices_ordenados}")
 
     for i in range(0, len(indices_ordenados), 3):
         grupo = indices_ordenados[i:i+3] #agrupo en 3

@@ -7,25 +7,33 @@ from scipy.signal import find_peaks
 from utils_midi import exportar_melodia_a_midi
 from utils_coder import generar_clave_compas, crear_melodia, imprimir_melodia
 from utils_audio import convertir_midi_a_wav
-from utils_decoder import cargar_audio, calcular_energia,  detectar_frecuencias, obtener_melodia, calcular_compases, decodificar_mensaje
+from utils_decoder import cargar_audio, calcular_energia, detectar_frecs, obtener_melodia, buscar_compases, decode
 
-def titulo():
-    print("=" * 60)
-    print("MelodySteg - envía mensajes ocultos en melodías".center(60))
-    print("=" * 60)
 
+def banner():
+    print('''     
+___  ___     _           _       _____ _             
+|  \/  |    | |         | |     /  ___| |            
+| .  . | ___| | ___   __| |_   _\ `--.| |_ ___  __ _ 
+| |\/| |/ _ \ |/ _ \ / _` | | | |`--. \ __/ _ \/ _` |
+| |  | |  __/ | (_) | (_| | |_| /\__/ / ||  __/ (_| |
+\_|  |_/\___|_|\___/ \__,_|\__, \____/ \__\___|\__, |
+                            __/ |               __/ |
+                           |___/               |___/                                                                          
+Hide messages using audio                                                     
+    ''')
 
 def main():
-    titulo()
+    banner()
     #example msg--> mensaje = "hey you!"
-    mensaje = input("Escribe el mensaje: ")
+    msj = input("Escribe el mensaje: ")
 
 
-    clave, compases = generar_clave_compas(mensaje)
+    clave, compases = generar_clave_compas(msj)
     a, b = clave
-    print(f"\nClave generada para el receptor: a = {a}, b = {b}, compases = {compases}\n")
+    print(f"\nClave generada: a = {a}, b = {b}, compases = {compases}\n")
 
-    melodia_codificada = crear_melodia(mensaje, clave, compases)
+    melodia_codificada = crear_melodia(msj, clave, compases)
     #imprimir_melodia(melodia_codificada)
 
 
@@ -36,36 +44,35 @@ def main():
 
 
 
-# ==== RECEPTOR ====
+# ==== RECEPTOR funcionalidad
     print("- RECEPTOR -")
-    a = int(input("Introduce la clave 'a': "))
-    b = int(input("Introduce la clave 'b': "))
-    compases = int(input("Introduce el número total de compases: "))
+    a = int(input("Introduce clave 'a': "))
+    b = int(input("Introduce clave 'b': "))
+    compases = int(input("Introduce el total de compases: "))
     clave_receptor = (a, b)
 
     
-    # Cargar el archivo de audio
+    # cargar el wav
     #ruta = "mensaje.wav"
     ruta = input("Introduce la ruta del archivo .wav recibido: ").strip()
 
     y, sr, audio = cargar_audio(ruta)
 
-    # Calcular la energía de la señal
     energia, tiempos = calcular_energia(audio, sr)
 
     
-    # Detectar las frecuencias dominantes
+    # buscar frecuencias
     picos, _ = find_peaks(energia, height=np.max(energia)*0.3, distance=int(0.4 / 0.01))
-    frecuencias_encontradas = detectar_frecuencias(audio, picos, duracion_nota=0.7, tasa_muestreo=sr)
+    frecs_encontradas = detectar_frecs(audio, picos, duracion_nota=0.7, tasa_muestreo=sr)
 
-    # Obtener la melodía detectada
-    melodia_detectada = obtener_melodia(frecuencias_encontradas)
+    # obtener la melodia
+    melodia_detectada = obtener_melodia(frecs_encontradas)
 
-    compases_detectados = calcular_compases(picos, paso=int(0.01 * sr), tasa_muestreo=sr, duracion_nota=0.7)
+    compases_detectados = buscar_compases(picos, paso=int(0.01 * sr), tasa_muestreo=sr, duracion_nota=0.7)
 
-    # Decodificar el mensaje
-    mensaje_decodificado = decodificar_mensaje(clave_receptor, compases, compases_detectados, melodia_detectada)
-    print(f"Mensaje decodificado: {mensaje_decodificado}")
+    # decodificar
+    msj_decodificado = decode(clave_receptor, compases, compases_detectados, melodia_detectada)
+    print(f"Mensaje decodificado: {msj_decodificado}")
 
 if __name__ == "__main__":
     main()

@@ -8,14 +8,12 @@ import wave # for .wav format
 import os
 os.system("clear")
 
-#ignorar las firmas 
 
-#load the file
 #file = wave.open("mensaje.wav", "r") # rb = read binary
 def cargar_audio(ruta_archivo):
     tasa_muestreo, datos = wavfile.read(ruta_archivo)
     y, sr = librosa.load(ruta_archivo, sr=None)
-    print(f"Canción cargada con sr: {sr} Hz, Duración: {len(y)/sr:.2f} s")
+    print(f"archivo subido con sr: {sr} Hz,\nduracion: {len(y)/sr:.2f} s")
 
     if len(datos.shape) == 2:
         datos = datos[:, 0]
@@ -23,7 +21,7 @@ def cargar_audio(ruta_archivo):
     
     return y, sr, audio
 
-def calcular_energia(audio, tasa_muestreo): # detectamos el audio
+def calcular_energia(audio, tasa_muestreo): 
     ventana = int(0.05 * tasa_muestreo)
     paso = int(0.01 * tasa_muestreo)
 
@@ -32,7 +30,7 @@ def calcular_energia(audio, tasa_muestreo): # detectamos el audio
     return energia, tiempos # tiempos correspondientes a cada punto de energía
 
 
-def frecuencia_a_indice(f, tolerancia=5.0):
+def frec_a_indx(f, tolerancia=5.0):
     dif = np.abs(FREQS - f)
     indice = np.argmin(dif)
 
@@ -48,7 +46,7 @@ def inverso(a, m):
             return x
     raise ValueError(f"no encontró el inverso mod")
 
-def reconstruir_mensaje_desde_indices(indices_ordenados):
+def recuperar_msg_con_indx(indices_ordenados):
   #reordenar los idx
     def indices_a_char(i1, i2, i3):
         byte = (i1 << 6) | (i2 << 3) | i3
@@ -67,7 +65,7 @@ def reconstruir_mensaje_desde_indices(indices_ordenados):
     return "".join(chars)
 
 
-def detectar_frecuencias(audio, picos, duracion_nota, tasa_muestreo):
+def detectar_frecs(audio, picos, duracion_nota, tasa_muestreo):
     # busca las frec dominantes en los picos de energía
     samples_nota = int(duracion_nota * tasa_muestreo)
     frecuencias_encontradas = []
@@ -87,7 +85,7 @@ def detectar_frecuencias(audio, picos, duracion_nota, tasa_muestreo):
     return frecuencias_encontradas
 
 def obtener_melodia(frecuencias_encontradas):
-    frecuencias_filtradas = [] #quitar las firmas
+    frecuencias_filtradas = [] 
     for f in frecuencias_encontradas:
         if abs(f) > 30 and abs(f ) > 30:
             frecuencias_filtradas.append(f)
@@ -95,7 +93,7 @@ def obtener_melodia(frecuencias_encontradas):
     melodia_detectada = []
 
     for f in frecuencias_filtradas:
-        idx = frecuencia_a_indice(f) # mapeo los indices con las freqs encontradas
+        idx = frec_a_indx(f) # mapeo los indices con las freqs encontradas
 
         if idx is not None:
             melodia_detectada.append(idx)
@@ -108,7 +106,7 @@ def obtener_melodia(frecuencias_encontradas):
 # Basado en su tiempo de aparición en el audio
 
 # duracion_nota debe ser la misma que usaste al codificar (ej: 0.7 s)
-def calcular_compases(picos, paso, tasa_muestreo, duracion_nota):
+def buscar_compases(picos, paso, tasa_muestreo, duracion_nota):
     compases_detectados = [
         int((pico * paso / tasa_muestreo) // duracion_nota)
         for pico in picos
@@ -118,7 +116,7 @@ def calcular_compases(picos, paso, tasa_muestreo, duracion_nota):
 
 # print("compases detectados desde los picos : ", compases_detectados)
 
-def decodificar_mensaje(clave, compases, compases_detectados, melodia_detectada):
+def decode(clave, compases, compases_detectados, melodia_detectada):
     a, b = clave
     a_inv = inverso(a, compases)
 
@@ -130,7 +128,7 @@ def decodificar_mensaje(clave, compases, compases_detectados, melodia_detectada)
     #melodia_con_i.sort()
     indices_ordenados = [idx for _, idx in melodia_con_i]
 
-    mensaje = reconstruir_mensaje_desde_indices(indices_ordenados) # recuperar msg
+    mensaje = recuperar_msg_con_indx(indices_ordenados) # recuperar msg
     return mensaje
 
 

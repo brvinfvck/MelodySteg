@@ -3,12 +3,12 @@ from math import gcd
 from typing import Tuple
 
 
-# ==== FRECUENCIAS ====
+# ==== FRECUENCIAS 
 FREQS = np.array([261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25])  # C4 a C5
 
 
-# ==== GENERADOR DE CLAVE Y COMPASES ====
-def generar_clave_y_compases(texto: str) -> Tuple[Tuple[int, int], int]:
+# ==== GENERADOR DE CLAVE Y N COMPASES
+def generar_clave_compas(texto: str) -> Tuple[Tuple[int, int], int]:
     notas_necesarias = len(texto) * 3
     compases = notas_necesarias
     posibles_a = [a for a in range(2, compases) if gcd(a, compases) == 1]
@@ -17,7 +17,6 @@ def generar_clave_y_compases(texto: str) -> Tuple[Tuple[int, int], int]:
         raise ValueError(f"No se encontro ningun valor 'a' coprimo con {compases}.")
 
     a = posibles_a[0]
-    #b = 0
     b = ord(texto[0])  #valor ASCII del primer char del txto
     clave = (a, b)
 
@@ -27,7 +26,7 @@ def generar_clave_y_compases(texto: str) -> Tuple[Tuple[int, int], int]:
     return clave, compases
 
 
-""" funciones de codificacion"""
+# ==== FUNCIONES DE CODIFICACION 
 
 def char_a_indices(c):
     byte = ord(c)
@@ -36,11 +35,11 @@ def char_a_indices(c):
     return indices
 
 def codificar_texto_a_indices(texto):
-    #print(f"[codificar_texto_a_indices] Codificando texto: '{texto}'")
+    #print(f"[codificar_texto_a_indices] codificando texto...: '{texto}'")
     indices = []
     for c in texto:
         indices.extend(char_a_indices(c))
-    #print(f"[codificar_texto_a_indices] Índices finales: {indices}")
+    #print(f"[codificar_texto_a_indices] indices: {indices}")
     return indices
 
 def nota_en_compas(idx, clave, compases):
@@ -49,8 +48,8 @@ def nota_en_compas(idx, clave, compases):
     #print(f"[nota_en_compas] Nota idx {idx} -> Compás: {compas}")
     return compas
 
-def generar_melodia_con_mensaje(texto, clave, compases):
-    #print(f"[generar_melodia_con_mensaje] Generando melodía para: '{texto}' con clave {clave}")
+def crear_melodia(texto, clave, compases):
+    #print(f"[generar_melodia_con_mensaje] generando melodía para: '{texto}' con clave {clave}")
     indices = codificar_texto_a_indices(texto)
     melodia = []
 
@@ -60,12 +59,14 @@ def generar_melodia_con_mensaje(texto, clave, compases):
         melodia.append((i, freq, compas))
         #print(f"[generar_melodia_con_mensaje] i={i}, index={idx} -> freq={freq} Hz, compás={compas}")
 
-    #print(f"[generar_melodia_con_mensaje] Melodía generada con {len(melodia)} notas.")
+    #print(f"[generar_melodia_con_mensaje] melodia creada con {len(melodia)} notas.")
     return melodia
 
-def mostrar_melodia_en_texto(melodia):
-    print("\n Melodía generada:")
-    print(f"{'Nota (Hz)':>10} | {'Compás':>6}")
+# === VISUALIZAR 'PARTITURA'
+
+def imprimir_melodia(melodia):
+    print("\n melodia generada:")
+    print(f"{'nota en Hz':>10} | {'compas':>6}")
     print("-" * 22)
     for i, freq, compas in melodia:
         print(f"{freq:>10.2f} | {compas:>6}")

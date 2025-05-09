@@ -5,40 +5,39 @@ import numpy as np
 #import IPython.display as ipd
 from scipy.signal import find_peaks
 from utils_midi import exportar_melodia_a_midi
-from utils_coder import generar_clave_y_compases, generar_melodia_con_mensaje, mostrar_melodia_en_texto
+from utils_coder import generar_clave_compas, crear_melodia, imprimir_melodia
 from utils_audio import convertir_midi_a_wav
 from utils_decoder import cargar_audio, calcular_energia,  detectar_frecuencias, obtener_melodia, calcular_compases, decodificar_mensaje
 
 def titulo():
     print("=" * 60)
-    print("🎵 MelodySteg - Oculta y revela mensajes en melodías 🎵".center(60))
+    print("MelodySteg - envía mensajes ocultos en melodías".center(60))
     print("=" * 60)
 
 
 def main():
     titulo()
-    #mensaje = "hey you!"
+    #example msg--> mensaje = "hey you!"
     mensaje = input("Escribe el mensaje: ")
 
 
-    clave, compases = generar_clave_y_compases(mensaje)
+    clave, compases = generar_clave_compas(mensaje)
     a, b = clave
     print(f"\nClave generada para el receptor: a = {a}, b = {b}, compases = {compases}\n")
 
-    melodia_codificada = generar_melodia_con_mensaje(mensaje, clave, compases)
-    #mostrar_melodia_en_texto(melodia_codificada)
+    melodia_codificada = crear_melodia(mensaje, clave, compases)
+    #imprimir_melodia(melodia_codificada)
 
 
     exportar_melodia_a_midi(melodia_codificada, bpm=60, instrumento=0)
 
     convertir_midi_a_wav("mensaje.mid", "mensaje.wav", "/usr/share/sounds/sf2/FluidR3_GM.sf2")
-    #ipd.Audio("mensaje.wav")
 
 
 
-#---------------------------------------------------- receptor
 
-    print("=== RECEPTOR ===")
+# ==== RECEPTOR ====
+    print("- RECEPTOR -")
     a = int(input("Introduce la clave 'a': "))
     b = int(input("Introduce la clave 'b': "))
     compases = int(input("Introduce el número total de compases: "))

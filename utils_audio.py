@@ -12,7 +12,6 @@ def convertir_midi_a_wav(nombre_midi="mensaje.mid", nombre_wav="mensaje.wav", so
         "-r",
         "44100"
     ]
-    # Redirigir stdout y stderr para evitar que se imprima en la terminal
     with open(os.devnull, 'w') as devnull:
         subprocess.run(comando, stdout=devnull, stderr=devnull)
 

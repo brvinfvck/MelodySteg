@@ -8,7 +8,7 @@ Utiliza un esquema de codificación para convertir el texto en frecuencias de au
 
 # Cómo funciona
 
-    Codificación de texto: cada carácter se mapea a una frecuencia única
-    Transmisión: La aplicación devuelve un fichero .wav al usuario con su mensaje integrado
-    Recepción: El receptor decodifica las frecuencias de vuelta al texto, habiendo obtenido previamente una clave (a,b) y el numero de compases generados.
-    Visualización: Incluye gráficos y espectrograma que permiten analizar el wav generado. La salida del programa devuelve el mensaje decodificado al receptor.
+Codificación de texto: cada carácter se mapea a una frecuencia única
+Transmisión: La aplicación devuelve un fichero .wav al usuario con su mensaje integrado
+Recepción: El receptor decodifica las frecuencias de vuelta al texto, habiendo obtenido previamente una clave (a,b) y el numero de compases generados.
+Visualización: Incluye gráficos y espectrograma que permiten analizar el wav generado. La salida del programa devuelve el mensaje decodificado al receptor.

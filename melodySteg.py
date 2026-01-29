@@ -7,10 +7,10 @@ import numpy as np
 # import IPython.display as ipd
 
 from scipy.signal import find_peaks
-from utils_midi import exportar_melodia_a_midi
-from utils_coder import kdf, crear_melodia, imprimir_melodia, mel_con_padding, log_dispersion
-from utils_audio import midi_a_wav
-from utils_decoder import cargar_audio, onsets_y_frecs, decode
+from util.midi import exportar_melodia_a_midi
+from util.coder import kdf, crear_melodia, imprimir_melodia, mel_con_padding, log_dispersion
+from util.audio import midi_a_wav
+from util.decoder import cargar_audio, onsets_y_frecs, decode
 
 
 # funcion para validar clave del receptor

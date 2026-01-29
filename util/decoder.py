@@ -1,10 +1,10 @@
 from scipy.fft import rfft, rfftfreq
 from scipy.io import wavfile
-from utils_coder import FREQS
+from util.coder import FREQS
 import numpy as np
 import librosa
 import wave  # for .wav format
-from utils_coder import beat_random
+from util.coder import beat_random
 
 # file = wave.open("mensaje.wav", "r") # rb = read binary
 

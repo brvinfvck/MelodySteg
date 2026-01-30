@@ -184,3 +184,6 @@ __pycache__/
 *.pyc
 .vscode/
 .vscode/
+claves.txt
+*.mid
+*.wav

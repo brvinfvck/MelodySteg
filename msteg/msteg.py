@@ -63,7 +63,7 @@ python3 main.py --help muestra guía de uso
     ''')
 
 
-def emisor_main():
+def emisor_main(output="mensaje.wav"):
     entrada = input("Escribe el mensaje a codificar: ")
     pw = input("Escribe una contraseña: ")
 
@@ -83,7 +83,7 @@ def emisor_main():
         print("Formato de compás no válido. Usando 4/4 por defecto.")
         numerador = 4
 
-    emisor(entrada, pw, instr, numerador)
+    emisor(entrada, pw, instr, numerador, output=output)
 
 def emisor(entrada, pw, instr, numerador, output="mensaje.wav"):
 
@@ -108,15 +108,13 @@ def emisor(entrada, pw, instr, numerador, output="mensaje.wav"):
     log_dispersion(entrada, melodia, mel_final)
 
 
-def receptor_main():
+def receptor_main(ruta="mensaje.wav"):
     print("- Clave para decodificar el mensaje -")
     pw = input("Escribe una contraseña: ")
     numerador = validar_entrada("Tiempos por compás: ")
-    ruta = input("Ruta del archivo .wav: ").strip()
-
     receptor(pw, numerador, ruta)
 
-def receptor(pw, numerador, ruta):
+def receptor(pw, numerador, ruta="mensaje.wav"):
     y, sr, audio = cargar_audio(ruta)
     onsets, frecs = onsets_y_frecs(audio, sr)
 
@@ -137,6 +135,7 @@ def receptor(pw, numerador, ruta):
 def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('--modo', choices=['emisor', 'receptor'])
+    parser.add_argument('--f', type=str, help='Archivo de salida para el emisor o de entrada para el receptor', default='mensaje.wav')
     parser.add_argument('--help', action='store_true')
     args = parser.parse_args()
 
@@ -145,23 +144,30 @@ def main():
     if args.help:
         help()
 
+    if args.f is None:
+        f = input("Ruta del archivo .wav: ").strip()
+    else:
+        f = args.f
+
     # si se elige el modo directamente:
     if args.modo:
         if args.modo == 'emisor':
-            emisor()
+            emisor_main(output=f)
         elif args.modo == 'receptor':
-            receptor()
+            receptor_main(ruta=f)
         return
 
+
     while True:
+
         modo = input(
             "\nSelecciona un modo para continuar (emisor/receptor) o 'salir': ").strip().lower()
 
         if modo == 'emisor':
-            emisor()
+            emisor_main(output=f)
             break
         elif modo == 'receptor':
-            receptor()
+            receptor_main(ruta=f)
             break
         elif modo == "salir":
             print("Saliendo de la aplicación...")

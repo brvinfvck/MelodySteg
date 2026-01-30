@@ -56,7 +56,6 @@ def kdf(pw, compases):
 
 # FUNCIONES DE CODIFICACION
 
-
 def char_a_idx(c):
     byte = ord(c)
     indices = [(byte >> 6) & 0b111, (byte >> 3) & 0b111, byte & 0b111]

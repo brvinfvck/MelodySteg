@@ -96,11 +96,12 @@ def onsets_y_frecs(audio, sr, muestra=0.4):
 
 
 def decode(clave, compases, onsets, frecs_encontradas, numerador):
+    
     a, b = clave
     a_inv = inverso(a, compases)
 
     orden = np.argsort(onsets)
-    # onsets_ord= np.array(onsets)[orden][:compases * numerador]
+    # onsets_ord = np.array(onsets)[orden][:compases * numerador]
     # se guardan las frec necesarias
     frecs_ord = np.array(frecs_encontradas)[orden][:compases*numerador]
 

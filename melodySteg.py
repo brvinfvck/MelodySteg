@@ -8,7 +8,7 @@ import numpy as np
 
 from scipy.signal import find_peaks
 from util.midi import exportar_melodia_a_midi
-from util.coder import kdf, crear_melodia, imprimir_melodia, mel_con_padding, log_dispersion
+from util.coder import kdf, crear_melodia, imprimir_melodia, mel_con_padding, log_dispersion, gen_compases_from_m, gen_compases_from_c
 from util.audio import midi_a_wav
 from util.decoder import cargar_audio, onsets_y_frecs, decode
 
@@ -63,10 +63,10 @@ python3 main.py --help muestra guía de uso
     ''')
 
 
-def emisor():
-
+def emisor_main():
     entrada = input("Escribe el mensaje a codificar: ")
     pw = input("Escribe una contraseña: ")
+
     print("\nElige un instrumento (0-127)")
     print("0  - Piano")
     print("46 - Guitarra acústica")  # no si >3 char
@@ -83,41 +83,45 @@ def emisor():
         print("Formato de compás no válido. Usando 4/4 por defecto.")
         numerador = 4
 
+    emisor(entrada, pw, instr, numerador)
+
+def emisor(entrada, pw, instr, numerador, output="mensaje.wav"):
+
     # clave, compases = generar_clave_compas(entrada)
-    clave, compases = kdf(pw, entrada)
-    a, b = clave
+    compases = gen_compases_from_m(entrada, numerador)
+    a,b = kdf(pw, compases)
+    
     print(f"\n Clave generada: a->{a}, b->{b} y compases->{compases}\n")
 
-    melodia = crear_melodia(entrada, clave, compases)
-    mel_final = mel_con_padding(melodia, compases, clave, numerador)
+    melodia = crear_melodia(entrada, (a,b), compases)
+    mel_final = mel_con_padding(melodia, compases, (a,b), numerador)
     exportar_melodia_a_midi(mel_final, bpm=60, instrumento=instr)
     imprimir_melodia(melodia)
 
-    midi_a_wav("mensaje.mid", "mensaje.wav",
+    midi_a_wav("mensaje.mid", output,
                "/usr/share/sounds/sf2/FluidR3_GM.sf2")
 
-    with open("claves.txt", "w") as f:
-        f.write(f"\n Clave generada: a->{a}, b->{b}, compás->{numerador}\n")
+    # with open("claves.txt", "w") as f:
+    #     f.write(f"\n Clave generada: a->{a}, b->{b}, compás->{numerador}\n")
 
-    print("Archivos creados: mensaje.wav y claves.txt")
+    print(f"Archivos creados: {output}")
     log_dispersion(entrada, melodia, mel_final)
 
 
-def receptor():
+def receptor_main():
     print("- Clave para decodificar el mensaje -")
-
-    a = validar_entrada("Clave a: ")
-    b = validar_entrada("Clave b: ")
+    pw = input("Escribe una contraseña: ")
     numerador = validar_entrada("Tiempos por compás: ")
-
     ruta = input("Ruta del archivo .wav: ").strip()
 
-    clave = (a, b)
+    receptor(pw, numerador, ruta)
+
+def receptor(pw, numerador, ruta):
     y, sr, audio = cargar_audio(ruta)
-
     onsets, frecs = onsets_y_frecs(audio, sr)
-    compases = len(onsets)//numerador  # calcula compases
 
+    compases = gen_compases_from_c(onsets, numerador)
+    clave = kdf(pw, compases)
     #     # buscar las frecuencias
     # energia, _ = calcular_energia(audio, sr)
     # picos, _  = find_peaks(energia, height=np.max(energia)*0.3, distance=int(0.4/0.01))
@@ -129,7 +133,6 @@ def receptor():
 
     msj_final = decode(clave, compases, onsets, frecs, numerador)
     print(f"Mensaje decodificado: {msj_final}")
-
 
 def main():
     parser = argparse.ArgumentParser(add_help=False)

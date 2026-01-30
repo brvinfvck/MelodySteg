@@ -19,12 +19,13 @@ FREQS = np.array([220.00, 261.63, 293.66, 329.63,
 # ])
 
 # acordes en relativa Cmaj
-ACORDES = {"C":  [261.63, 329.63, 392.00],   # C4, E4, G4
-           "G":  [196.00, 246.94, 293.66],   # G3, B3, D4
-           "Am": [220.00, 261.63, 329.63],   # A3, C4/(523.25 Hz), E4
-           "F":  [174.61, 220.00, 130.81],   # F3, A3 (349.23 Hz), C3
+ACORDES = {
+    "C":  [261.63, 329.63, 392.00],   # C4, E4, G4
+    "G":  [196.00, 246.94, 293.66],   # G3, B3, D4
+    "Am": [220.00, 261.63, 329.63],   # A3, C4/(523.25 Hz), E4
+    "F":  [174.61, 220.00, 130.81],   # F3, A3 (349.23 Hz), C3
+}
 
-           }
 PROGRESION = [
     "C", "G", "Am", "F", "C"
     # "G", # I–V–vi–IV
@@ -32,18 +33,26 @@ PROGRESION = [
 ]
 
 
-def kdf(pw, txt):
-    compases = len(txt)*3
+def gen_compases_from_m(m, numerador):
+    return len(m) * numerador
+
+def gen_compases_from_c(c, numerador):
+    return ( len(c) - 1 ) // numerador
+
+def kdf(pw, compases):
+
     v_aleatorio = b"melodia"
     key = pbkdf2_hmac('sha256', pw.encode(), v_aleatorio, 100_000, dklen=2)
 
+    # TODO Mejorar esto
     a = key[0] % compases  # genero 'a'
     while gcd(a, compases) != 1:
         a = (a+1) % compases or 1
 
     b = key[1]  # genero 'b'
     clave = (a, b)
-    return clave, compases
+
+    return clave
 
 # FUNCIONES DE CODIFICACION
 
@@ -124,6 +133,7 @@ def mel_con_padding(melodia, compases, clave, numerador):
 
                 rdo.append((c, beat, float(frec_relleno), False))
                 relleno_idx += 1
+
     return rdo
 
 

@@ -13,8 +13,6 @@ Utiliza un esquema de codificación para convertir el texto en frecuencias de au
 
 # Requisitos
     
-    pip install -r requirements.txt
-
-    fluidsynth -> apt-get install fluidsynth
-
-    soundfont ->  apt install fluid-soundfont-gm
+fluidsynth -> apt-get install fluidsynth
+soundfont ->  apt install fluid-soundfont-gm
+pip install -r requirements.txt

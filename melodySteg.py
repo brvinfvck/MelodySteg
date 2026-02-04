@@ -6,7 +6,7 @@ import os
 import re
 import sys
 
-from utils_coder import kdf_from_compases
+from utils.utils_coder import kdf_from_compases
 
 
 # funcion para validar clave del receptor
@@ -85,15 +85,15 @@ def cargar_claves_desde_archivo(ruta: str):
 
 
 def emisor():
-    from utils_midi import exportar_melodia_a_midi
-    from utils_coder import (
+    from utils.utils_midi import exportar_melodia_a_midi
+    from utils.utils_coder import (
         kdf,
         crear_melodia,
         imprimir_melodia,
         mel_con_padding,
         log_dispersion,
     )
-    from utils_audio import midi_a_wav
+    from utils.utils_audio import midi_a_wav
 
     entrada = input("Escribe el mensaje a codificar: ")
     pw = input("Escribe una contraseña: ")
@@ -134,7 +134,7 @@ def emisor():
 
 
 def receptor(wav_path=None, claves_path="claves.txt", pw=None, numerador=None):
-    from utils_decoder import (
+    from utils.utils_decoder import (
         cargar_audio,
         onsets_y_frecs,
         inferir_numerador_y_compases,

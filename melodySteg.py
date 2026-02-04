@@ -39,15 +39,14 @@ Modo receptor:
         2) Leyéndolo desde un archivo (por defecto: claves.txt) si existe y NO se indicó --pw.
     - El numerador (tiempos por compás) se intenta inferir automáticamente desde el audio (o se toma de claves.txt si está).
 
-Argumentos útiles (modo receptor):
+Argumentos(modo receptor):
     --wav RUTA_WAV
     --pw CONTRASEÑA
     --numerador N
     --claves RUTA_CLAVES   (por defecto: claves.txt)
 
 Requisitos:
-    - Python 3
-    - Instalar dependencias: pip install -r requirements.txt y una soundfont
+    - pip install -r requirements.txt y una soundfont
 
 """)
 
@@ -146,7 +145,7 @@ def receptor(wav_path=None, claves_path="claves.txt", pw=None, numerador=None):
     clave = None
 
     # Si hay contraseña, se deriva (a,b) y no se depende de un archivo externo.
-    # Si no hay contraseña, se intenta usar 'claves.txt' (u otro archivo indicado).
+    # Si no hay contraseña se usa claves.txt
     if pw is None and claves_path and os.path.exists(claves_path):
         cargado = cargar_claves_desde_archivo(claves_path)
         if cargado:

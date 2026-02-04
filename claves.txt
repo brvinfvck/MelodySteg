@@ -1,2 +1,2 @@
 
- Clave generada: a->7, b->101
+ Clave generada: a->11, b->128, compás->2

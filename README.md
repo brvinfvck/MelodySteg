@@ -11,6 +11,14 @@ Utiliza un esquema de codificación para convertir el texto en frecuencias de au
 3. Recepción: El receptor decodifica las frecuencias de vuelta al texto, habiendo obtenido previamente una  clave (a,b) y el numero de compases generados.
 4. Visualización: Incluye gráficos y espectrograma que permiten analizar el wav generado. La salida del programa devuelve el mensaje decodificado al receptor.
 
+## Cambio reciente (receptor)
+
+El receptor ya no necesita que ingreses manualmente `(a,b)`:
+- Si proporcionas una contraseña (`--pw`), el programa deriva `(a,b)` automáticamente.
+- Si no usas `--pw` y existe `claves.txt`, tomará `(a,b)` desde ese archivo.
+
+El numerador (tiempos por compás) también se intenta inferir automáticamente desde el audio (si no se indicó `--numerador`).
+
 # Requisitos
     
     pip install -r requirements.txt

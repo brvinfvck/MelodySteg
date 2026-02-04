@@ -95,6 +95,62 @@ def onsets_y_frecs(audio, sr, muestra=0.4):
     return onsets, frecs_encontradas
 
 
+def inferir_numerador_y_compases(onsets, sr, min_numerador=2, max_numerador=12):
+    """
+    Intenta inferir el numerador (tiempos por compás) desde el patrón de duraciones.
+
+    En este proyecto, las notas de "relleno" y las notas "mensaje" tienen duraciones
+    distintas en el MIDI (cortas vs largas). Como hay 1 nota de mensaje por compás,
+    el ratio entre notas totales y notas largas aproxima el numerador.
+
+    Devuelve: (numerador, compases) o (None, None) si no puede inferir.
+    """
+    if onsets is None or len(onsets) < 6:
+        return None, None
+
+    try:
+        onsets = np.asarray(onsets, dtype=np.float64)
+    except Exception:
+        return None, None
+
+    # diferencias entre inicios de notas (duración aproximada de cada nota)
+    dt = np.diff(onsets) / float(sr)
+    if dt.size < 5:
+        return None, None
+
+    # filtrar valores absurdos para robustez
+    dt = dt[(dt > 0.05) & (dt < 1.5)]
+    if dt.size < 5:
+        return None, None
+
+    dt_sorted = np.sort(dt)
+    gaps = np.diff(dt_sorted)
+    if gaps.size == 0:
+        return None, None
+
+    idx = int(np.argmax(gaps))
+    if gaps[idx] < 0.06:
+        return None, None
+
+    umbral = float((dt_sorted[idx] + dt_sorted[idx + 1]) / 2.0)
+    notas_largas = int(np.sum(dt > umbral))
+    total_notas = int(dt.size)
+
+    if notas_largas <= 0:
+        return None, None
+
+    ratio = total_notas / float(notas_largas)
+    numerador = int(np.rint(ratio))
+    if numerador < min_numerador or numerador > max_numerador:
+        return None, None
+
+    if abs(ratio - numerador) > 0.25:
+        return None, None
+
+    compases = notas_largas
+    return numerador, compases
+
+
 def decode(clave, compases, onsets, frecs_encontradas, numerador):
     a, b = clave
     a_inv = inverso(a, compases)

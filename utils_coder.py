@@ -33,17 +33,24 @@ PROGRESION = [
 
 
 def kdf(pw, txt):
-    compases = len(txt)*3
+    compases = len(txt) * 3
+    clave = kdf_from_compases(pw, compases)
+    return clave, compases
+
+
+def kdf_from_compases(pw: str, compases: int) -> Tuple[int, int]:
+    if compases <= 0:
+        raise ValueError("compases debe ser un entero positivo")
+
     v_aleatorio = b"melodia"
     key = pbkdf2_hmac('sha256', pw.encode(), v_aleatorio, 100_000, dklen=2)
 
     a = key[0] % compases  # genero 'a'
     while gcd(a, compases) != 1:
-        a = (a+1) % compases or 1
+        a = (a + 1) % compases or 1
 
     b = key[1]  # genero 'b'
-    clave = (a, b)
-    return clave, compases
+    return (a, b)
 
 # FUNCIONES DE CODIFICACION
 

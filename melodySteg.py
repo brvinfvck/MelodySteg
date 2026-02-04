@@ -2,15 +2,11 @@
 
 
 import argparse
+import os
+import re
 import sys
-import numpy as np
-# import IPython.display as ipd
 
-from scipy.signal import find_peaks
-from utils_midi import exportar_melodia_a_midi
-from utils_coder import kdf, crear_melodia, imprimir_melodia, mel_con_padding, log_dispersion
-from utils_audio import midi_a_wav
-from utils_decoder import cargar_audio, onsets_y_frecs, decode
+from utils_coder import kdf_from_compases
 
 
 # funcion para validar clave del receptor
@@ -29,16 +25,25 @@ def help():
     print("""
 
 Uso:
-    python3 main.py --modo emisor/receptor
+    python melodySteg.py --modo emisor/receptor
 
 Modo emisor:
     - Introduce un mensaje desde la terminal.
     - El programa codificará el mensaje y generará 'mensaje.wav'.
-    - También generará 'clave_para_receptor.txt' con los parámetros: clave(a,b) para decodificar.
+    - También generará 'claves.txt' con los parámetros: a,b y compás para decodificar.
 
 Modo receptor:
-    - Recibe el archivo 'mensaje.wav' y 'clave_para_receptor.txt'.
-    - El programa pedirá que ingreses los valores de clave y selecciones el .WAV para decodificar el mensaje.
+    - Recibe el archivo .wav.
+    - (a,b) se obtiene en background de dos formas:
+        1) Derivándolo desde una contraseña (recomendado): usa --pw o escribe la contraseña cuando se pida.
+        2) Leyéndolo desde un archivo (por defecto: claves.txt) si existe y NO se indicó --pw.
+    - El numerador (tiempos por compás) se intenta inferir automáticamente desde el audio (o se toma de claves.txt si está).
+
+Argumentos útiles (modo receptor):
+    --wav RUTA_WAV
+    --pw CONTRASEÑA
+    --numerador N
+    --claves RUTA_CLAVES   (por defecto: claves.txt)
 
 Requisitos:
     - Python 3
@@ -58,12 +63,37 @@ ___  ___     _           _       _____ _
                             __/ |               __/ |
                            |___/               |___/                                                                          
 Hide messages using audio   
-python3 main.py --help muestra guía de uso
+python melodySteg.py --help muestra guía de uso
                 --modo emisor/receptor
     ''')
 
 
+def cargar_claves_desde_archivo(ruta: str):
+    try:
+        with open(ruta, "r", encoding="utf-8") as f:
+            contenido = f.read()
+    except FileNotFoundError:
+        return None
+
+    patron = r"a\\s*->\\s*(\\d+).*?b\\s*->\\s*(\\d+).*?comp[aá]s\\s*->\\s*(\\d+)"
+    match = re.search(patron, contenido, flags=re.IGNORECASE | re.DOTALL)
+    if not match:
+        return None
+
+    a, b, numerador = (int(x) for x in match.groups())
+    return (a, b), numerador
+
+
 def emisor():
+    from utils_midi import exportar_melodia_a_midi
+    from utils_coder import (
+        kdf,
+        crear_melodia,
+        imprimir_melodia,
+        mel_con_padding,
+        log_dispersion,
+    )
+    from utils_audio import midi_a_wav
 
     entrada = input("Escribe el mensaje a codificar: ")
     pw = input("Escribe una contraseña: ")
@@ -103,20 +133,60 @@ def emisor():
     log_dispersion(entrada, melodia, mel_final)
 
 
-def receptor():
-    print("- Clave para decodificar el mensaje -")
+def receptor(wav_path=None, claves_path="claves.txt", pw=None, numerador=None):
+    from utils_decoder import (
+        cargar_audio,
+        onsets_y_frecs,
+        inferir_numerador_y_compases,
+        decode,
+    )
 
-    a = validar_entrada("Clave a: ")
-    b = validar_entrada("Clave b: ")
-    numerador = validar_entrada("Tiempos por compás: ")
+    print("- Parámetros para decodificar el mensaje -")
 
-    ruta = input("Ruta del archivo .wav: ").strip()
+    clave = None
 
-    clave = (a, b)
-    y, sr, audio = cargar_audio(ruta)
+    # Si hay contraseña, se deriva (a,b) y no se depende de un archivo externo.
+    # Si no hay contraseña, se intenta usar 'claves.txt' (u otro archivo indicado).
+    if pw is None and claves_path and os.path.exists(claves_path):
+        cargado = cargar_claves_desde_archivo(claves_path)
+        if cargado:
+            clave, numerador_archivo = cargado
+            if numerador is None:
+                numerador = numerador_archivo
+            a, b = clave
+            print(
+                f"Usando claves desde '{claves_path}': a={a}, b={b}, compás={numerador}")
+
+    if numerador is None:
+        numerador = validar_entrada("Tiempos por compás: ")
+
+    if not wav_path:
+        if os.path.exists("mensaje.wav"):
+            wav_path = "mensaje.wav"
+            print("Usando archivo por defecto: mensaje.wav")
+        else:
+            wav_path = input("Ruta del archivo .wav: ").strip()
+
+    y, sr, audio = cargar_audio(wav_path)
 
     onsets, frecs = onsets_y_frecs(audio, sr)
-    compases = len(onsets)//numerador  # calcula compases
+
+    compases = None
+    if numerador is None:
+        numerador_inf, compases_inf = inferir_numerador_y_compases(onsets, sr)
+        if numerador_inf is not None:
+            numerador = numerador_inf
+            compases = compases_inf
+            print(f"Numerador inferido automáticamente: {numerador}")
+
+    if numerador is None:
+        numerador = 4
+        print("No se pudo inferir el numerador; usando 4 por defecto.")
+
+    # limitar compases a lo realmente disponible en el wav (por robustez)
+    compases_max = len(onsets) // numerador
+    if compases is None or compases > compases_max:
+        compases = compases_max
 
     #     # buscar las frecuencias
     # energia, _ = calcular_energia(audio, sr)
@@ -127,6 +197,11 @@ def receptor():
     # compases_encontrados= buscar_compases(picos, paso=int(0.01*sr), tasa_muestreo=sr, duracion_nota=0.7)
     # compases = len(compases_encontrados)
 
+    if clave is None:
+        if pw is None:
+            pw = input("Escribe la contraseña: ").strip()
+        clave = kdf_from_compases(pw, compases)
+
     msj_final = decode(clave, compases, onsets, frecs, numerador)
     print(f"Mensaje decodificado: {msj_final}")
 
@@ -135,19 +210,29 @@ def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('--modo', choices=['emisor', 'receptor'])
     parser.add_argument('--help', action='store_true')
+    parser.add_argument(
+        '--wav', help="Ruta del archivo .wav a decodificar (modo receptor).")
+    parser.add_argument('--claves', default="claves.txt",
+                        help="Ruta del archivo con a,b y compás (por defecto: claves.txt).")
+    parser.add_argument(
+        '--pw', help="Contraseña para derivar (a,b) automáticamente (modo receptor).")
+    parser.add_argument('--numerador', type=int,
+                        help="Tiempos por compás (p.ej. 4 para 4/4) (modo receptor).")
     args = parser.parse_args()
 
     banner()
 
     if args.help:
         help()
+        return
 
     # si se elige el modo directamente:
     if args.modo:
         if args.modo == 'emisor':
             emisor()
         elif args.modo == 'receptor':
-            receptor()
+            receptor(wav_path=args.wav, claves_path=args.claves,
+                     pw=args.pw, numerador=args.numerador)
         return
 
     while True:
@@ -158,7 +243,8 @@ def main():
             emisor()
             break
         elif modo == 'receptor':
-            receptor()
+            receptor(wav_path=args.wav, claves_path=args.claves,
+                     pw=args.pw, numerador=args.numerador)
             break
         elif modo == "salir":
             print("Saliendo de la aplicación...")

@@ -224,7 +224,7 @@ def main():
         help()
         return
 
-    # si se elige el modo directamente:
+    # si se elige el modo directament:
     if args.modo:
         if args.modo == 'emisor':
             emisor()

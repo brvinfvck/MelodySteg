@@ -42,7 +42,6 @@ Modo receptor:
 Argumentos(modo receptor):
     --wav RUTA_WAV
     --pw CONTRASEÑA
-    --numerador N
     --claves RUTA_CLAVES   (por defecto: claves.txt)
 
 Requisitos:
@@ -144,27 +143,29 @@ def receptor(wav_path=None, claves_path="claves.txt", pw=None, numerador=None):
 
     clave = None
 
-    # Si hay contraseña, se deriva (a,b) y no se depende de un archivo externo.
-    # Si no hay contraseña se usa claves.txt
-    if pw is None and claves_path and os.path.exists(claves_path):
-        cargado = cargar_claves_desde_archivo(claves_path)
-        if cargado:
-            clave, numerador_archivo = cargado
-            if numerador is None:
-                numerador = numerador_archivo
-            a, b = clave
-            print(
-                f"Usando claves desde '{claves_path}': a={a}, b={b}, compás={numerador}")
-
-    if numerador is None:
-        numerador = validar_entrada("Tiempos por compás: ")
-
     if not wav_path:
         if os.path.exists("mensaje.wav"):
             wav_path = "mensaje.wav"
             print("Usando archivo por defecto: mensaje.wav")
         else:
             wav_path = input("Ruta del archivo .wav: ").strip()
+
+    # Se intenta cargar el numerador desde claves.txt (si existe).
+    # (a,b) solo se toma del archivo cuando NO se indicó contraseña.
+    if claves_path and os.path.exists(claves_path):
+        cargado = cargar_claves_desde_archivo(claves_path)
+        if cargado:
+            clave_archivo, numerador_archivo = cargado
+            if numerador is None:
+                numerador = numerador_archivo
+            if pw is None:
+                clave = clave_archivo
+                a, b = clave
+                print(
+                    f"Usando claves desde '{claves_path}': a={a}, b={b}, compás={numerador}")
+            else:
+                print(
+                    f"Usando compás desde '{claves_path}': compás={numerador}")
 
     y, sr, audio = cargar_audio(wav_path)
 
@@ -180,7 +181,7 @@ def receptor(wav_path=None, claves_path="claves.txt", pw=None, numerador=None):
 
     if numerador is None:
         numerador = 4
-        print("No se pudo inferir el numerador; usando 4 por defecto.")
+        print("No se pudo obtener el numerador; usando 4 por defecto.")
 
     # limitar compases a lo realmente disponible en el wav (por robustez)
     compases_max = len(onsets) // numerador
@@ -210,13 +211,11 @@ def main():
     parser.add_argument('--modo', choices=['emisor', 'receptor'])
     parser.add_argument('--help', action='store_true')
     parser.add_argument(
-        '--wav', help="Ruta del archivo .wav a decodificar (modo receptor).")
+        '--wav', help="Ruta del archivo .wav  (modo receptor).")
     parser.add_argument('--claves', default="claves.txt",
                         help="Ruta del archivo con a,b y compás (por defecto: claves.txt).")
     parser.add_argument(
         '--pw', help="Contraseña para derivar (a,b) automáticamente (modo receptor).")
-    parser.add_argument('--numerador', type=int,
-                        help="Tiempos por compás (p.ej. 4 para 4/4) (modo receptor).")
     args = parser.parse_args()
 
     banner()
@@ -231,7 +230,7 @@ def main():
             emisor()
         elif args.modo == 'receptor':
             receptor(wav_path=args.wav, claves_path=args.claves,
-                     pw=args.pw, numerador=args.numerador)
+                     pw=args.pw)
         return
 
     while True:
@@ -243,7 +242,7 @@ def main():
             break
         elif modo == 'receptor':
             receptor(wav_path=args.wav, claves_path=args.claves,
-                     pw=args.pw, numerador=args.numerador)
+                     pw=args.pw)
             break
         elif modo == "salir":
             print("Saliendo de la aplicación...")

@@ -17,7 +17,7 @@ El receptor ya no necesita que ingreses manualmente `(a,b)`:
 - Si proporcionas una contraseña (`--pw`), el programa deriva `(a,b)` automáticamente.
 - Si no usas `--pw` y existe `claves.txt`, tomará `(a,b)` desde ese archivo.
 
-El numerador (tiempos por compás) también se intenta inferir automáticamente desde el audio (si no se indicó `--numerador`).
+El numerador (tiempos por compás) se toma desde `claves.txt` si está disponible; si no, se intenta inferir automáticamente desde el audio.
 
 # Requisitos
     

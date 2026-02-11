@@ -3,24 +3,47 @@ from scipy.io import wavfile
 from util.coder import FREQS
 import numpy as np
 import librosa
-import wave  # for .wav format
-from util.coder import beat_random
+from util.coder import beat_random, ACORDES
 
 # file = wave.open("mensaje.wav", "r") # rb = read binary
 
+min_freq = 20e3
+max_freq = -1
+
+for a in ACORDES:
+    for f in ACORDES[a]:
+        min_freq = min(min_freq, f)
+        max_freq = max(max_freq, f)
 
 def cargar_audio(ruta_archivo):
-    tasa_muestreo, datos = wavfile.read(ruta_archivo)
-    y, sr = librosa.load(ruta_archivo, sr=None)
-    print(f"archivo subido con sr: {sr} Hz,\nduracion: {len(y)/sr:.2f} s")
+    sr, datos = wavfile.read(ruta_archivo)
+    # y, sr = librosa.load(ruta_archivo, sr=None)
+    print(f"archivo subido con sr: {sr} Hz,\nduracion: {len(datos)/sr:.2f} s")
 
     if len(datos.shape) == 2:
         datos = datos[:, 0]
 
-    audio = datos.astype(np.float32) / \
-        np.max(np.abs(datos))  # normalizar los datos
+    raw = datos.astype(np.float32) / np.max(np.abs(datos))  # normalizar los datos
 
-    return y, sr, audio
+    # TODO Band pass filter
+    fft = np.fft.fft(raw)
+
+    # Freq 
+    smin = int(min_freq * 0 * fft.size / sr) 
+    smax = int(max_freq * 16 * fft.size / sr) 
+    filtered = fft.copy()
+    filtered[:smin] = 0
+    filtered[smax:] = 0
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(fft)
+    # plt.plot(filtered)
+    # plt.show()
+    audio = np.fft.ifft(filtered).real.astype(np.float32)
+
+    wavfile.write('test.wav', sr, audio)
+
+    return sr, audio.astype(np.float32)
 
 
 # FUNCIONES DECODIFICACION
@@ -52,6 +75,7 @@ def inverso(a, m):
     raise ValueError(f"no se encontró el inverso mod")
 
 
+# TODO Nueva estrategia de depósito y comparación?
 def recuperar_msg_con_indx(indx_ordenados):
   # reordenar los idx
     def indices_a_char(i1, i2, i3):
@@ -73,7 +97,8 @@ def recuperar_msg_con_indx(indx_ordenados):
 
 # funcion para encontrar onsets y extraer frec dominante
 
-def onsets_y_frecs(audio, sr, muestra=0.4):
+def onsets_y_frecs(audio, sr, muestra=0.25):
+
     y_librosa = librosa.util.normalize(audio)
     onsets = librosa.onset.onset_detect(
         y=y_librosa, sr=sr, units='samples', backtrack=False)
@@ -81,15 +106,14 @@ def onsets_y_frecs(audio, sr, muestra=0.4):
     frecs_encontradas = []
     for onset in onsets:  # por cada nota, extrae la frec
         inicio = int(onset)
-        fin = int(min(len(audio), onset + muestra * sr))
+        fin = int(onset + muestra * sr)
         segmento = audio[inicio:fin]
-        if len(segmento) == 0:
-            frecs_encontradas.append(0.0)
-            continue
-        hann = segmento * np.hanning(len(segmento))
-        espec = np.abs(rfft(hann))
-        freqs = rfftfreq(len(hann), 1 / sr)
-        fdom = freqs[np.argmax(espec)]
+        fft = np.abs(np.fft.rfft(segmento))
+        freqs = np.fft.rfftfreq(segmento.size, 1 / sr)
+        fdom = freqs[np.argmax(fft)]
+        # fft.sample to freq
+        fdom = np.argmax(fft) * sr / segmento.size
+        
         frecs_encontradas.append(fdom)
 
     return onsets, frecs_encontradas

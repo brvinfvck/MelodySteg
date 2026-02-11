@@ -4,9 +4,8 @@ from math import gcd
 from typing import Tuple
 from hashlib import pbkdf2_hmac
 
-# Am pentatónica ampliada a 8 notas
-FREQS = np.array([220.00, 261.63, 293.66, 329.63,
-                 392.00, 440.00, 523.25, 587.33])
+TRANSPOSITION = 0.8
+
 # FREQS = np.array([
 #     220.00,  # A3
 #     246.94,  # B3
@@ -20,11 +19,16 @@ FREQS = np.array([220.00, 261.63, 293.66, 329.63,
 
 # acordes en relativa Cmaj
 ACORDES = {
-    "C":  [261.63, 329.63, 392.00],   # C4, E4, G4
-    "G":  [196.00, 246.94, 293.66],   # G3, B3, D4
-    "Am": [220.00, 261.63, 329.63],   # A3, C4/(523.25 Hz), E4
-    "F":  [174.61, 220.00, 130.81],   # F3, A3 (349.23 Hz), C3
+    "C":  np.array([261.63, 329.63, 392.00])*TRANSPOSITION,   # C4, E4, G4
+    "G":  np.array([196.00, 246.94, 293.66])*TRANSPOSITION,   # G3, B3, D4
+    "Am": np.array([220.00, 261.63, 329.63])*TRANSPOSITION,   # A3, C4/(523.25 Hz), E4
+    "F":  np.array([174.61, 220.00, 130.81])*TRANSPOSITION,   # F3, A3 (349.23 Hz), C3
 }
+
+# Am pentatónica ampliada a  notas
+FREQS = np.array([220.00, 261.63, 293.66, 329.63,
+                 392.00, 440.00, 523.25, 587.33]) * TRANSPOSITION
+
 
 PROGRESION = [
     "C", "G", "Am", "F", "C"

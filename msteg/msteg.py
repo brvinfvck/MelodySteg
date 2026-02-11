@@ -95,10 +95,11 @@ def emisor(entrada, pw, instr, numerador, output="mensaje.wav"):
 
     melodia = crear_melodia(entrada, (a,b), compases)
     mel_final = mel_con_padding(melodia, compases, (a,b), numerador)
-    exportar_melodia_a_midi(mel_final, bpm=60, instrumento=instr)
+    midifile="mensaje.mid"
+    exportar_melodia_a_midi(mel_final, bpm=60, nombre_archivo=midifile, instrumento=instr, signature=(numerador, 4))
     imprimir_melodia(melodia)
 
-    midi_a_wav("mensaje.mid", output,
+    midi_a_wav(midifile, output,
                "/usr/share/sounds/sf2/FluidR3_GM.sf2")
 
     # with open("claves.txt", "w") as f:
@@ -115,7 +116,8 @@ def receptor_main(ruta="mensaje.wav"):
     receptor(pw, numerador, ruta)
 
 def receptor(pw, numerador, ruta="mensaje.wav"):
-    y, sr, audio = cargar_audio(ruta)
+    sr, audio = cargar_audio(ruta)
+    print(audio)
     onsets, frecs = onsets_y_frecs(audio, sr)
 
     compases = gen_compases_from_c(onsets, numerador)

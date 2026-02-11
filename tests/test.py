@@ -1,4 +1,4 @@
-from melodySteg import emisor, receptor
+from msteg import emisor, receptor
 
 entrada = "entrada"
 pw = "pass"

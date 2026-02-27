@@ -88,7 +88,7 @@ def onsets_y_frecs(audio, sr, muestra=0.4):
             frecs_encontradas.append(0.0)
             continue
         hann = segmento * np.hanning(len(segmento))
-        espec = np.abs(rfft(hann))
+        espec = np.abs(rfft(hann))  # cuanta energía tiene cada frec
         freqs = rfftfreq(len(hann), 1 / sr)
         fdom = freqs[np.argmax(espec)]
         frecs_encontradas.append(fdom)

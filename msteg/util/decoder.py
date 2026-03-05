@@ -7,27 +7,18 @@ from util.coder import beat_random, ACORDES
 
 # file = wave.open("mensaje.wav", "r") # rb = read binary
 
-min_freq = 20e3
-max_freq = -1
+def filtra(audio, sr):
 
-for a in ACORDES:
-    for f in ACORDES[a]:
-        min_freq = min(min_freq, f)
-        max_freq = max(max_freq, f)
+    min_freq = 20e3
+    max_freq = -1
 
-def cargar_audio(ruta_archivo):
-    sr, datos = wavfile.read(ruta_archivo)
-    # y, sr = librosa.load(ruta_archivo, sr=None)
-    print(f"archivo subido con sr: {sr} Hz,\nduracion: {len(datos)/sr:.2f} s")
-
-    if len(datos.shape) == 2:
-        datos = datos[:, 0]
-
-    raw = datos.astype(np.float32) / np.max(np.abs(datos))  # normalizar los datos
+    for a in ACORDES:
+        for f in ACORDES[a]:
+            min_freq = min(min_freq, f)
+            max_freq = max(max_freq, f)
 
     # TODO Band pass filter
-    fft = np.fft.fft(raw)
-
+    fft = np.fft.fft(audio)
     # Freq 
     smin = int(min_freq * 0 * fft.size / sr) 
     smax = int(max_freq * 16 * fft.size / sr) 
@@ -40,6 +31,61 @@ def cargar_audio(ruta_archivo):
     # plt.plot(filtered)
     # plt.show()
     audio = np.fft.ifft(filtered).real.astype(np.float32)
+    return audio
+
+
+def filtra_notas(audio, sr):
+
+    freqs = []
+
+    for a in ACORDES:
+        for f in ACORDES[a]:
+            freqs.append(float(f))
+    
+    freqs = np.array(freqs)
+    # Armónicos
+    freqs = np.concat([(2**i)*freqs for i in range(1, 10)])
+    # Remove duplicates
+    freqs = list(set(freqs))    
+    freqs.sort()
+    print(freqs)
+
+    filtered = np.fft.rfft(audio)
+    import matplotlib.pyplot as plt
+    fig, (ax1,ax2) = plt.subplots(2, 1)
+    ax1.plot(np.abs(filtered))
+    space = 25
+    last = 0
+    for f in freqs:
+        # BPF
+        nfreq = int(f - space)
+        nfsamp = int(nfreq * filtered.size / sr) 
+        filtered[last:nfsamp] = 0
+        last = int((f + space) * filtered.size / sr)
+
+    # HPF
+    nfreq = int(f - space)
+    nfsamp = int(nfreq * filtered.size / sr) 
+    filtered[nfsamp:] = 0
+
+    ax2.plot(np.abs(filtered))
+    plt.show()
+
+    audio = np.fft.irfft(filtered).real.astype(np.float32)
+    return audio
+
+def cargar_audio(ruta_archivo):
+    sr, datos = wavfile.read(ruta_archivo)
+    # y, sr = librosa.load(ruta_archivo, sr=None)
+    print(f"archivo subido con sr: {sr} Hz,\nduracion: {len(datos)/sr:.2f} s")
+
+    if len(datos.shape) == 2:
+        datos = datos[:, 0]
+
+    raw = datos.astype(np.float32) / np.max(np.abs(datos))  # normalizar los datos
+
+
+    audio = filtra(raw, sr)
 
     wavfile.write('test.wav', sr, audio)
 

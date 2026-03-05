@@ -50,7 +50,7 @@ def exportar_melodia_a_midi(melodia, nombre_archivo="mensaje.mid", bpm=60, instr
             # las frecuencias más bajas
             nota_cover = frec_a_midi(frec*16)
             cover.append(Message('note_on', note=nota_cover,
-                        velocity=50, time=0))
+                        velocity=70, time=0))
             print(compas)
             cover.append(Message('note_off', note=nota_cover,
                         velocity=30, time=numerador*NEGRA))  
